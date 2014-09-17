@@ -30,7 +30,7 @@ int main(int argc, char* argv[])
 	double testBounds[6] = {-10,10, -10,10,-10,10};
 	ModelView::setMCRegionOfInterest(testBounds);
 	glClearColor(1.0, 1.0, 0.5 , 1.0);
-	c.run();
+	c.run();    
 
 	return 0;
 }
