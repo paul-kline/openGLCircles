@@ -9,7 +9,8 @@
 ShaderIF* ModelView::shaderIF = NULL;
 int ModelView::numInstances = 0;
 GLuint ModelView::shaderProgram = 0;
-
+GLint ModelView::ppuLoc_scaleTrans = -2;
+GLint ModelView::pvaLoc_mcPosition = -2;
 double ModelView::mcRegionOfInterest[6] = { -1.0, 1.0, -1.0, 1.0, -1.0, 1.0 };
 
 ModelView::ModelView()
@@ -19,7 +20,7 @@ ModelView::ModelView()
 	if (ModelView::shaderProgram == 0)
 	{
 		// Create the common shader program:
-	 	ModelView::shaderIF = new ShaderIF("proje4ct1.vsh", "project1.fsh");
+	 	ModelView::shaderIF = new ShaderIF("project1.vsh", "project1.fsh");
 	  //ModelView::shaderIF = ShaderIF::initShader("project1.vsh", "project1.fsh");
 		ModelView::shaderProgram = shaderIF->getShaderPgmID();
 		fetchGLSLVariableLocations();
@@ -29,7 +30,50 @@ ModelView::ModelView()
 	defineSquare();
 	ModelView::numInstances++;
 }
+ModelView::ModelView(float mcCoords[4][2]){
+ // std::cout << "Making Model View";
+//	std::cout << "This is the shaderProgram value: " << shaderProgram;
+	if (ModelView::shaderProgram == 0)
+	{
+		// Create the common shader program:
+	 	ModelView::shaderIF = new ShaderIF("project1.vsh", "project1.fsh");
+	  //ModelView::shaderIF = ShaderIF::initShader("project1.vsh", "project1.fsh");
+		ModelView::shaderProgram = shaderIF->getShaderPgmID();
+		fetchGLSLVariableLocations();
+	}
 
+	// TODO: define and call method(s) to initialize your model and send data to GPU
+
+	ModelView::numInstances++;
+	double xBounds[2]={mcCoords[0][0], mcCoords[0][0]}; //arbitrarily starting by setting to two real x values.
+	double yBounds[2]={mcCoords[0][1],mcCoords[0][1]};
+  for( int i = 0; i < 4; i = i + 1 )
+   {
+     std::cout << "You are passing in to the constructor: mcCoords[" << i << "][0]=" << mcCoords[i][0]<<'\n';
+     //next 4 ifs are to help set the bounding box.
+     if(xBounds[0]>mcCoords[i][0]){
+       xBounds[0]=mcCoords[i][0];
+     }
+     if(xBounds[1]<mcCoords[i][1]){
+       xBounds[1]=mcCoords[i][1];
+     }
+     
+     if(yBounds[0]>mcCoords[i][0]){
+       yBounds[0]=mcCoords[i][0];
+     }
+     if(yBounds[1]<mcCoords[i][1]){
+       yBounds[1]=mcCoords[i][1];
+     }
+     mcCorners[i][0]=mcCoords[i][0];
+     mcCorners[i][1]=mcCoords[i][1];
+     
+   }
+   double bounds[6] = {xBounds[0],xBounds[1],yBounds[0],yBounds[1],-1,1};
+   setMCRegionOfInterest(bounds);
+  
+  defineSquare();
+  
+}
 ModelView::~ModelView()
 {
 	// TODO: delete the vertex array objects and buffers here
@@ -98,6 +142,8 @@ void ModelView::fetchGLSLVariableLocations()
 	if (ModelView::shaderProgram > 0)
 	{
 		// TODO: Set GLSL variable locations here
+	  ModelView::ppuLoc_scaleTrans = ppUniformLocation(shaderProgram, "scaleTrans");
+	  ModelView::pvaLoc_mcPosition = pvAttribLocation(shaderProgram, "mcPosition");
 	}
 }
 
@@ -159,6 +205,10 @@ void ModelView::render() const
 	// TODO: set scaleTrans (and all other needed) uniform(s)
 
 	// TODO: make require primitive call(s)
+	float scaleTrans[4];
+	computeScaleTrans(scaleTrans);
+	//std::cout << "SCALETRANS: " << scaleTrans[0] << ", " << scaleTrans[1];
+	glUniform4fv(ModelView::ppuLoc_scaleTrans, 1, scaleTrans);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	// restore the previous program
 	glUseProgram(pgm);
@@ -169,19 +219,25 @@ void ModelView::setMCRegionOfInterest(double xyz[6])
 	for (int i=0 ; i<6 ; i++)
 		mcRegionOfInterest[i] = xyz[i];
 }
+
+
+
+
+
 void ModelView::defineSquare(){
   typedef float vec2[2];
+  std::cout << "mcCorners: " << mcCorners[0][0] << ", " << mcCorners[0][1];
   vec2 squareVertices[4]=
-    {
-      //{-0.50,-0.50}, {-0.50,0.50},{0.50,0.50},{0.50,-0.50}
-      {-1.0,-1.0}, {-1.0,1.0},{1.0,1.0},{1.0,-1.0}
-    };
+    {{mcCorners[0][0],mcCorners[0][1]},{mcCorners[1][0],mcCorners[1][1]},{mcCorners[2][0],mcCorners[2][1]},{mcCorners[3][0],mcCorners[3][1]}};
+   // {-1.0,-1.0}, {-0.50,0.50},{0.50,0.70},{0.50,-0.50}
+     // {-1.0,-1.0}, {-1.0,1.0},{1.0,1.0},{1.0,-1.0}
+    //};
   glGenVertexArrays(1,vao);
   glBindVertexArray(vao[0]);
   glGenBuffers(1,vbo);
   glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
   int numBytes = 4*sizeof(vec2);
   glBufferData(GL_ARRAY_BUFFER,numBytes,squareVertices, GL_STATIC_DRAW);
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
-  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(ModelView::pvaLoc_mcPosition, 2, GL_FLOAT, GL_FALSE, 0, 0);
+  glEnableVertexAttribArray(ModelView::pvaLoc_mcPosition);
 }
