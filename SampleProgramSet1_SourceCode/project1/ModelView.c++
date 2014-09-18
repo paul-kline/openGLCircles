@@ -1,6 +1,7 @@
 // ModelView.c++ - a basic combined Model and View for OpenGL
 
 #include <iostream>
+#include <cmath>
 
 #include "ModelView.h"
 #include "Controller.h"
@@ -11,6 +12,11 @@ int ModelView::numInstances = 0;
 GLuint ModelView::shaderProgram = 0;
 GLint ModelView::ppuLoc_scaleTrans = -2;
 GLint ModelView::pvaLoc_mcPosition = -2;
+GLint ModelView::ppuLoc_radius = -2;
+GLint ModelView::ppuLoc_circleCenters = -2;
+GLint ModelView::pvaLoc_refCoord = -2;
+GLfloat ModelView::radius =0.4;
+
 double ModelView::mcRegionOfInterest[6] = { -1.0, 1.0, -1.0, 1.0, -1.0, 1.0 };
 
 ModelView::ModelView()
@@ -21,7 +27,6 @@ ModelView::ModelView()
 	{
 		// Create the common shader program:
 	 	ModelView::shaderIF = new ShaderIF("project1.vsh", "project1.fsh");
-	  //ModelView::shaderIF = ShaderIF::initShader("project1.vsh", "project1.fsh");
 		ModelView::shaderProgram = shaderIF->getShaderPgmID();
 		fetchGLSLVariableLocations();
 	}
@@ -30,10 +35,13 @@ ModelView::ModelView()
 	defineSquare();
 	ModelView::numInstances++;
 }
-ModelView::ModelView(float mcCoords[4][2]){
- // std::cout << "Making Model View";
-//	std::cout << "This is the shaderProgram value: " << shaderProgram;
-	if (ModelView::shaderProgram == 0)
+ModelView::ModelView(float mcCoords[4][2],int numSurroundingCircles_){
+	numSurroundingCircles=numSurroundingCircles_;
+  
+	initializeCircleRadii();
+  
+ 
+      if (ModelView::shaderProgram == 0)
 	{
 		// Create the common shader program:
 	 	ModelView::shaderIF = new ShaderIF("project1.vsh", "project1.fsh");
@@ -41,6 +49,8 @@ ModelView::ModelView(float mcCoords[4][2]){
 		ModelView::shaderProgram = shaderIF->getShaderPgmID();
 		fetchGLSLVariableLocations();
 	}
+	
+	// mcCorners[0][1]=9.0f;
 
 	// TODO: define and call method(s) to initialize your model and send data to GPU
 
@@ -49,7 +59,7 @@ ModelView::ModelView(float mcCoords[4][2]){
 	double yBounds[2]={mcCoords[0][1],mcCoords[0][1]};
   for( int i = 0; i < 4; i = i + 1 )
    {
-     std::cout << "You are passing in to the constructor: mcCoords[" << i << "][0]=" << mcCoords[i][0]<<'\n';
+     //std::cout << "You are passing in to the constructor: mcCoords[" << i << "][0]=" << mcCoords[i][0]<<'\n';
      //next 4 ifs are to help set the bounding box.
      if(xBounds[0]>mcCoords[i][0]){
        xBounds[0]=mcCoords[i][0];
@@ -142,8 +152,12 @@ void ModelView::fetchGLSLVariableLocations()
 	if (ModelView::shaderProgram > 0)
 	{
 		// TODO: Set GLSL variable locations here
+	    ModelView::ppuLoc_radius = ppUniformLocation(shaderProgram, "radius");
 	  ModelView::ppuLoc_scaleTrans = ppUniformLocation(shaderProgram, "scaleTrans");
+	
+	   ModelView::ppuLoc_circleCenters = ppUniformLocation(shaderProgram, "circleCenters");
 	  ModelView::pvaLoc_mcPosition = pvAttribLocation(shaderProgram, "mcPosition");
+	  ModelView::pvaLoc_refCoord = pvAttribLocation(shaderProgram, "refCoord");
 	}
 }
 
@@ -209,6 +223,24 @@ void ModelView::render() const
 	computeScaleTrans(scaleTrans);
 	//std::cout << "SCALETRANS: " << scaleTrans[0] << ", " << scaleTrans[1];
 	glUniform4fv(ModelView::ppuLoc_scaleTrans, 1, scaleTrans);
+	glUniform1f(ModelView::ppuLoc_radius, radius);
+	
+	
+	
+	GLfloat flattened[(numSurroundingCircles+1)*2];
+	for( int i = 0; i <(numSurroundingCircles+1)*2; i = i + 1 )
+	{
+	  flattened[i]= circleCenters[i/2][i %2];
+     
+	}
+	
+	
+	
+	glUniform1fv(ModelView::ppuLoc_circleCenters,(numSurroundingCircles+1)*2,flattened);
+	
+	
+	
+	
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	// restore the previous program
 	glUseProgram(pgm);
@@ -218,6 +250,8 @@ void ModelView::setMCRegionOfInterest(double xyz[6])
 {
 	for (int i=0 ; i<6 ; i++)
 		mcRegionOfInterest[i] = xyz[i];
+	
+	
 }
 
 
@@ -234,10 +268,46 @@ void ModelView::defineSquare(){
     //};
   glGenVertexArrays(1,vao);
   glBindVertexArray(vao[0]);
-  glGenBuffers(1,vbo);
+  glGenBuffers(2,vbo);
   glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
   int numBytes = 4*sizeof(vec2);
   glBufferData(GL_ARRAY_BUFFER,numBytes,squareVertices, GL_STATIC_DRAW);
   glVertexAttribPointer(ModelView::pvaLoc_mcPosition, 2, GL_FLOAT, GL_FALSE, 0, 0);
   glEnableVertexAttribArray(ModelView::pvaLoc_mcPosition);
+  
+  
+  vec2 refCorners[4] = { {-1.0,-1.0}, {-1.0,1.0},{1.0,1.0},{1.0,-1.0} };
+  glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+  int numBytes2 = 4*sizeof(vec2);
+  glBufferData(GL_ARRAY_BUFFER,numBytes2,refCorners, GL_STATIC_DRAW);
+  glVertexAttribPointer(ModelView::pvaLoc_refCoord, 2, GL_FLOAT, GL_FALSE, 0, 0);
+  glEnableVertexAttribArray(ModelView::pvaLoc_refCoord);
+  
+  
 }
+
+void ModelView::initializeCircleRadii()
+{
+ // float circleCenters[numSurroundingCircles+1][2];
+  circleCenters = new float* [numSurroundingCircles+1]();
+ for( int i = 0; i < numSurroundingCircles+1; i = i + 1 )
+  {
+    circleCenters[i]= new float[2]();
+     
+   }
+  
+  circleCenters[0][0]=0.0; //circle in the middle;
+  circleCenters[0][1]=0.0;
+  
+  float tau = 2 * M_PI;
+  for( int i = 1; i < numSurroundingCircles+1; i = i + 1 )
+  {
+    circleCenters[i][0]=radius* sin(tau/numSurroundingCircles);
+    circleCenters[i][1]=radius* cos(tau/(float)numSurroundingCircles);
+     
+   }
+   
+ //  centers[0] = centers[0];
+
+}
+

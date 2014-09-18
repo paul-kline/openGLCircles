@@ -2,11 +2,15 @@
 
 // replace the placeholder implementation here
 //layout (location = 0) in vec2 vertexCoordinates;
-in vec2 mcPosition;
-uniform vec4 scaleTrans;
-//in vec2 refCoord;
 
-//out vec2 refCoordToFS;
+uniform vec4 scaleTrans;
+//uniform float radiuss;
+
+
+in vec2 mcPosition;
+
+in vec2 refCoord;
+out vec2 refCoordToFS;
 out float ldsX, ldsY;
 void main()
 {
@@ -14,6 +18,6 @@ void main()
 	ldsX = scaleTrans[0]*mcPosition.x + scaleTrans[1];
 	ldsY = scaleTrans[2]*mcPosition.y + scaleTrans[3];
 	gl_Position = vec4(ldsX,ldsY, 0, 1);
-	//refCoordToFS=refCoord;
+	refCoordToFS=refCoord;
 }
 

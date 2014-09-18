@@ -18,10 +18,10 @@ class ModelView
 {
 public:
 	ModelView();
-	ModelView(float cmCoords[4][2]);
+	ModelView(float cmCoords[4][2],int surroundingCircleNum);
 	virtual ~ModelView();
 	GLuint vao[1];
-	GLuint vbo[1];
+	GLuint vbo[2];
 	// xyzLimits: {mcXmin, mcXmax, mcYmin, mcYmax, mcZmin, mcZmax}
 	void getMCBoundingBox(double* xyzLimits) const;
 	void handleCommand(unsigned char key, double ldsX, double ldsY);
@@ -30,8 +30,13 @@ public:
 	static void setMCRegionOfInterest(double xyz[6]);
 
 private:
+	int numSurroundingCircles;
+	//float* x; //pointer of any kind here seg faults.
 	float mcCorners[4][2];
 
+	static GLfloat radius;
+	
+	
 	// TODO: VAO(s), VBO(s), and other relevant INSTANCE variables
 
 	// we assume all instances share the same shader program:
@@ -41,7 +46,10 @@ private:
 	
 	// TODO: add uniform and attribute variable location CLASS variables
 	static GLint ppuLoc_scaleTrans;
+	static GLint ppuLoc_radius;
+	static GLint ppuLoc_circleCenters;
 	static GLint pvaLoc_mcPosition;
+	static GLint pvaLoc_refCoord;
 	// "pp": "per-primitive"; "pv": "per-vertex"
 	static GLint ppUniformLocation(GLuint glslProgram, const std::string& name);
 	static GLint pvAttribLocation(GLuint glslProgram, const std::string& name);
@@ -61,8 +69,18 @@ private:
 
 	static double mcRegionOfInterest[6];
 
+	
 	static void fetchGLSLVariableLocations();
+	
+	void initializeCircleRadii();
 	void defineSquare();
+	
+
+    
+protected:
+   
+protected:
+    GLfloat** circleCenters;
 };
 
 #endif
