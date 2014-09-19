@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
 	c.addModel(new ModelView(squareVertices[2],8));
 	c.addModel(new ModelView(squareVertices[3],9));
 	c.addModel(new ModelView(squareVertices[4],10));
-	c.addModel(new ModelView(squareVertices[5],11));
+	c.addModel(new ModelView(squareVertices[5],17));
 	// initialize 2D viewing information:
 	// Get the overall scene bounding box in Model Coordinates:
 	double xyz[6]; // xyz limits, even though this is 2D

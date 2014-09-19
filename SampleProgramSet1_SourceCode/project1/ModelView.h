@@ -28,13 +28,18 @@ public:
 	void render() const;
 
 	static void setMCRegionOfInterest(double xyz[6]);
+	static void animate();
+	static void maybeAnimate();
 	GLint numCircs;
+    static double lastAnimationUpdate;
+    static bool animating;
+    static float stepSize;
 	
 private:
 	
 	//float* x; //pointer of any kind here seg faults.
 	float mcCorners[4][2];
-	static GLboolean animating;
+	
 	static GLfloat radius;
 	static GLfloat creationDistance;
 	

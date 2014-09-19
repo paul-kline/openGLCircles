@@ -7,16 +7,16 @@
 #include "Controller.h"
 #include "ShaderIF.h"
 #include "GLFWController.h"
-double delayInSeconds = 0.050;
-int delayInMilliseconds = 50;
-GLboolean ModelView::animating= false;
+double delayInSeconds = 0.001;
+int delayInMilliseconds = 1;
+double ModelView::lastAnimationUpdate=0.0;
+bool ModelView::animating= false;
 ShaderIF* ModelView::shaderIF = NULL;
 int ModelView::numInstances = 0;
-
+float ModelView::stepSize= 0.002;
 
 GLint numCircs=-1;
 
-GLfloat** ModelView::circleCenters;
 
 GLuint ModelView::shaderProgram = 0;
 GLint ModelView::ppuLoc_scaleTrans = -2;
@@ -27,6 +27,8 @@ GLint ModelView::pvaLoc_refCoord = -2;
 GLint ModelView::ppuLoc_numCircles = -2;
 GLfloat ModelView::radius =0.4;
 GLfloat ModelView::creationDistance = 0.4;
+//GLfloat ModelView::creationDistance = 0.4;
+
 
 
 double ModelView::mcRegionOfInterest[6] = { -1.0, 1.0, -1.0, 1.0, -1.0, 1.0 };
@@ -191,10 +193,32 @@ void ModelView::handleCommand(unsigned char key, double ldsX, double ldsY)
 {
   if (key == 'a')
 	{
-	  std::cout << "You clicked a!!!!!!\n\n\n";
-		animating = !animating;
+	//  std::cout << "You clicked a!!!!!!\n";
+		animating = true;
+		animate();
+// 		if(ModelView::animating){
+ 			GLFWController* glfwC =
+ 				dynamic_cast<GLFWController*>(Controller::getCurrentController());
+ 			if (glfwC != NULL)
+ 			{
+ 				glfwC->setRunWaitsForAnEvent(false);
+//   				maybeAnimate();
+ 			}
+// 		}
+// 		else
+// 		{
+// 			GLFWController* glfwC =
+// 				dynamic_cast<GLFWController*>(Controller::getCurrentController());
+// 			if (glfwC != NULL)
+// 				glfwC->setRunWaitsForAnEvent(true);	
+// 		}
 	}
-  
+	if(key == 'o'){
+	  animating=false;
+	  ModelView::creationDistance=ModelView::radius;
+	  
+	}
+  //maybeAnimate(); // handles updating the radius;
 }
 
 // linearMap determines the scale and translate parameters needed in
@@ -247,17 +271,8 @@ void ModelView::render() const
 	glUniform1f(ModelView::ppuLoc_creationDistance, creationDistance);
 	//if(numSurroundingCircles!=6){ std::cout << "not 6 \n\n\n\n\n\n";}
 	glUniform1i(ModelView::ppuLoc_numCircles, numCircs);
-	if(animating){
-	  std::cout << "animating!!!\n\n\n";
-	  creationDistance = 0.6;
-	 glUniform1f(ModelView::ppuLoc_creationDistance, creationDistance); 
-	  
-	}else{
-	//  std::cout << "not animatinganimating!!!\n\n\n";
-	  creationDistance=radius;
-	  glUniform1f(ModelView::ppuLoc_creationDistance, creationDistance);
-	  
-	}
+	
+	
 	/*
 	GLfloat flattened[(ModelView::numSurroundingCircles+1)*2];
 	for( int i = 0; i <(ModelView::numSurroundingCircles+1)*2; i = i + 1 )
@@ -278,7 +293,7 @@ void ModelView::render() const
 	// restore the previous program
 	
 	glUseProgram(pgm);
-	
+	maybeAnimate();
 }
 
 void ModelView::setMCRegionOfInterest(double xyz[6])
@@ -321,29 +336,41 @@ void ModelView::defineSquare(){
   
 }
 
-// void ModelView::initializeCircleRadii()
-// {
-//  // float circleCenters[numSurroundingCircles+1][2];
-//   circleCenters = new float* [numSurroundingCircles+1]();
-//  for( int i = 0; i < numSurroundingCircles+1; i = i + 1 )
-//   {
-//     circleCenters[i]= new float[2]();
-//      
-//    }
-//   
-//   circleCenters[0][0]=0.0; //circle in the middle;
-//   circleCenters[0][1]=0.0;
-//   
-//   float tau = 2 * M_PI;
-//   for( int i = 1; i < numSurroundingCircles+1; i = i + 1 )
-//   {
-//     circleCenters[i][0]=radius* sin((tau/numSurroundingCircles)*i);
-//     circleCenters[i][1]=radius* cos((tau/(float)numSurroundingCircles)*i);
-//     //  std::cout << circleCenters[i][0] << ", " << circleCenters[i][1] << "\n";
-//    }
-//    
-//    
-//  //  centers[0] = centers[0];
-// 
-// }
+
+
+void ModelView::maybeAnimate()
+{
+  
+  //std::cout << "Maybe animating!!!!!! animating: "  << ModelView::animating <<"\n\n";
+	if (animating)
+	{
+		double time = glfwGetTime();
+		if (time > lastAnimationUpdate+delayInSeconds)
+		{
+			animate();
+			lastAnimationUpdate = time;
+		}
+	}else{
+	//  std::cout << " here1\n";
+	//  ModelView::creationDistance=ModelView::radius;
+	  //std::cout << " here2\n";
+	//  glUniform1f(ModelView::ppuLoc_creationDistance, ModelView::creationDistance);
+	  //std::cout << " here3\n";
+	}
+	  
+	  
+}
+void ModelView::animate()
+{
+	//  std::cout << "animating!!!\n\n\n";
+	  if(abs(ModelView::creationDistance) >=ModelView::radius){
+	    ModelView::stepSize = ModelView::stepSize * (-1);
+	  };
+	  ModelView::creationDistance = ModelView::creationDistance +
+					ModelView::stepSize;
+	
+	  
+	
+  
+}
 
