@@ -10,7 +10,8 @@
 double delayInSeconds = 0.001;
 int delayInMilliseconds = 1;
 double ModelView::lastAnimationUpdate=0.0;
-bool ModelView::animating= false;
+bool ModelView::animating_inout= false;
+bool ModelView::animating_radically= false;
 ShaderIF* ModelView::shaderIF = NULL;
 int ModelView::numInstances = 0;
 float ModelView::stepSize= 0.002;
@@ -25,44 +26,23 @@ GLint ModelView::ppuLoc_radius = -2;
 GLint ModelView::ppuLoc_creationDistance = -2;
 GLint ModelView::pvaLoc_refCoord = -2;
 GLint ModelView::ppuLoc_numCircles = -2;
+GLint ModelView::ppuLoc_radicalOffset = -2;
 GLfloat ModelView::radius =0.4;
 GLfloat ModelView::creationDistance = 0.4;
-//GLfloat ModelView::creationDistance = 0.4;
+GLfloat ModelView::radicalOffset = 0.0;
 
 
 
 double ModelView::mcRegionOfInterest[6] = { -1.0, 1.0, -1.0, 1.0, -1.0, 1.0 };
 
-// ModelView::ModelView()
-// {
-//   // std::cout << "Making Model View";
-// 	std::cout << "This is the shaderProgram value: " << shaderProgram;
-// 	if (ModelView::shaderProgram == 0)
-// 	{
-// 		// Create the common shader program:
-// 	 	ModelView::shaderIF = new ShaderIF("project1.vsh", "project1.fsh");
-// 		ModelView::shaderProgram = shaderIF->getShaderPgmID();
-// 		fetchGLSLVariableLocations();
-// 	}
-//         ppuLoc_numCircles = ppUniformLocation(shaderProgram, "numCircs");
-// 	// TODO: define and call method(s) to initialize your model and send data to GPU
-// 	defineSquare();
-// 	ModelView::numInstances++;
-// }
-ModelView::ModelView(float mcCoords[4][2],GLint numCircs_){
-	
-	 numCircs=numCircs_;
-	
+ModelView::ModelView(float mcCoords[4][2],GLint numCircs_){	
+	 numCircs=numCircs_;	
       if (ModelView::shaderProgram == 0)
 	{
 		// Create the common shader program:
 	 	ModelView::shaderIF = new ShaderIF("project1.vsh", "project1.fsh");
-	  //ModelView::shaderIF = ShaderIF::initShader("project1.vsh", "project1.fsh");
 		ModelView::shaderProgram = shaderIF->getShaderPgmID();
-// 		 numCircs=numCircs_;
-		// initializeCircleRadii();
-		fetchGLSLVariableLocations();
-		
+		fetchGLSLVariableLocations();	
 	}
 	
 	
@@ -173,6 +153,9 @@ void ModelView::fetchGLSLVariableLocations()
 	  ModelView::pvaLoc_mcPosition = pvAttribLocation(shaderProgram, "mcPosition");
 	  ModelView::pvaLoc_refCoord = pvAttribLocation(shaderProgram, "refCoord");
  	  ModelView::ppuLoc_numCircles = ppUniformLocation(shaderProgram, "numCircs");
+	  ModelView::ppuLoc_radicalOffset = ppUniformLocation(shaderProgram, "radicalOffset");
+	  
+	  
 	  std::cout << ppuLoc_radius << ", " << ppuLoc_numCircles<< ", "<<ppuLoc_creationDistance << ", " << ppuLoc_scaleTrans <<"\n\n\n";
 	}
 }
@@ -194,8 +177,8 @@ void ModelView::handleCommand(unsigned char key, double ldsX, double ldsY)
   if (key == 'a')
 	{
 	//  std::cout << "You clicked a!!!!!!\n";
-		animating = true;
-		animate();
+		animating_inout = true;
+		//animate();
 // 		if(ModelView::animating){
  			GLFWController* glfwC =
  				dynamic_cast<GLFWController*>(Controller::getCurrentController());
@@ -214,11 +197,20 @@ void ModelView::handleCommand(unsigned char key, double ldsX, double ldsY)
 // 		}
 	}
 	if(key == 'o'){
-	  animating=false;
+	  animating_inout=false;
+	  animating_radically=false;
 	  ModelView::creationDistance=ModelView::radius;
 	  
 	}
-  //maybeAnimate(); // handles updating the radius;
+	if(key == 'r'){
+	    animating_radically=true;
+	  
+	}
+	if(key == 'p'){
+	 animating_inout=false; 
+	 animating_radically=false; 
+	}
+  maybeAnimate(); // handles updating the radius;
 }
 
 // linearMap determines the scale and translate parameters needed in
@@ -269,6 +261,7 @@ void ModelView::render() const
 	glUniform4fv(ModelView::ppuLoc_scaleTrans, 1, scaleTrans);
 	glUniform1f(ModelView::ppuLoc_radius, radius);
 	glUniform1f(ModelView::ppuLoc_creationDistance, creationDistance);
+	glUniform1f(ModelView::ppuLoc_radicalOffset, radicalOffset);
 	//if(numSurroundingCircles!=6){ std::cout << "not 6 \n\n\n\n\n\n";}
 	glUniform1i(ModelView::ppuLoc_numCircles, numCircs);
 	
@@ -342,7 +335,7 @@ void ModelView::maybeAnimate()
 {
   
   //std::cout << "Maybe animating!!!!!! animating: "  << ModelView::animating <<"\n\n";
-	if (animating)
+	if (animating_inout || animating_radically)
 	{
 		double time = glfwGetTime();
 		if (time > lastAnimationUpdate+delayInSeconds)
@@ -363,11 +356,26 @@ void ModelView::maybeAnimate()
 void ModelView::animate()
 {
 	//  std::cout << "animating!!!\n\n\n";
-	  if(abs(ModelView::creationDistance) >=ModelView::radius){
+  if(animating_inout){
+     if(abs(ModelView::creationDistance) >=ModelView::radius){
 	    ModelView::stepSize = ModelView::stepSize * (-1);
 	  };
 	  ModelView::creationDistance = ModelView::creationDistance +
 					ModelView::stepSize;
+     
+    
+  }
+  
+  if(animating_radically){
+    if((ModelView::radicalOffset) >=4*M_PI){
+	    ModelView::radicalOffset = 0.0;//ModelView::stepSize * (-1);
+	  };
+	  ModelView::radicalOffset = ModelView::radicalOffset +
+					ModelView::stepSize*3;
+    
+    
+  }
+	 
 	
 	  
 	

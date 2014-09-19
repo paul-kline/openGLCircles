@@ -32,8 +32,10 @@ public:
 	static void maybeAnimate();
 	GLint numCircs;
     static double lastAnimationUpdate;
-    static bool animating;
+    static bool animating_inout;
+    static bool animating_radically;
     static float stepSize;
+    static GLfloat radicalOffset;
 	
 private:
 	
@@ -59,6 +61,7 @@ private:
 	
 	
 	static GLint ppuLoc_numCircles;
+	static GLint ppuLoc_radicalOffset;
 	// "pp": "per-primitive"; "pv": "per-vertex"
 	static GLint ppUniformLocation(GLuint glslProgram, const std::string& name);
 	static GLint pvAttribLocation(GLuint glslProgram, const std::string& name);
@@ -81,8 +84,7 @@ private:
 
 	
 	static void fetchGLSLVariableLocations();
-	
-	void initializeCircleRadii();
+
 	void defineSquare();
 	
    

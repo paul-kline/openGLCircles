@@ -3,6 +3,7 @@
 uniform float radius;
 uniform float creationDistance;
 uniform int numCircs;
+uniform float radicalOffset;
 //uniform vec4 circles1_2;uniform vec4 circles3_4;uniform vec4 circles5_6;uniform vec4 circles7_8;uniform vec4 circles9_10;uniform vec4 circles11_12;
 // Replace the placeholder implementation here...
 in float ldsX, ldsY;
@@ -42,8 +43,8 @@ vec2 getCircleCoords(int index)
   float surroundingCircs = numCircs-1;
   if(index==0){return vec2(0.0,0.0);}
   float tau = 2.0 * 3.14159265359;
-    float x=creationDistance* sin((tau/surroundingCircs)*index);
-    float y=creationDistance* cos((tau/surroundingCircs)*index);
+    float x=creationDistance* sin(radicalOffset+ (tau/surroundingCircs)*index);
+    float y=creationDistance* cos(radicalOffset+(tau/surroundingCircs)*index);
     
     return vec2(x,y);
     //  std::cout << circleCenters[i][0] << ", " << circleCenters[i][1] << "\n";
