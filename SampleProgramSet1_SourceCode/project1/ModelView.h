@@ -28,9 +28,9 @@ public:
 	void render() const;
 
 	static void setMCRegionOfInterest(double xyz[6]);
-
+	GLint numCircs;
 private:
-	GLint numSurroundingCircles;
+	
 	//float* x; //pointer of any kind here seg faults.
 	float mcCorners[4][2];
 

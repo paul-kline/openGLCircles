@@ -25,28 +25,23 @@ GLfloat ModelView::radius =0.4;
 
 double ModelView::mcRegionOfInterest[6] = { -1.0, 1.0, -1.0, 1.0, -1.0, 1.0 };
 
-ModelView::ModelView()
-{
-  // std::cout << "Making Model View";
-	std::cout << "This is the shaderProgram value: " << shaderProgram;
-	if (ModelView::shaderProgram == 0)
-	{
-		// Create the common shader program:
-	 	ModelView::shaderIF = new ShaderIF("project1.vsh", "project1.fsh");
-		ModelView::shaderProgram = shaderIF->getShaderPgmID();
-		fetchGLSLVariableLocations();
-	}
-        ppuLoc_numCircles = ppUniformLocation(shaderProgram, "numCircs");
-	// TODO: define and call method(s) to initialize your model and send data to GPU
-	defineSquare();
-	ModelView::numInstances++;
-}
-ModelView::ModelView(float mcCoords[4][2],int numCircs_){
-	
-//   if(ModelView::numSurroundingCircles == -1){
-//     
-//     ModelView::numSurroundingCircles=numSurroundingCircles_;
-//   }
+// ModelView::ModelView()
+// {
+//   // std::cout << "Making Model View";
+// 	std::cout << "This is the shaderProgram value: " << shaderProgram;
+// 	if (ModelView::shaderProgram == 0)
+// 	{
+// 		// Create the common shader program:
+// 	 	ModelView::shaderIF = new ShaderIF("project1.vsh", "project1.fsh");
+// 		ModelView::shaderProgram = shaderIF->getShaderPgmID();
+// 		fetchGLSLVariableLocations();
+// 	}
+//         ppuLoc_numCircles = ppUniformLocation(shaderProgram, "numCircs");
+// 	// TODO: define and call method(s) to initialize your model and send data to GPU
+// 	defineSquare();
+// 	ModelView::numInstances++;
+// }
+ModelView::ModelView(float mcCoords[4][2],GLint numCircs_){
 	
 	 numCircs=numCircs_;
 	
@@ -61,11 +56,8 @@ ModelView::ModelView(float mcCoords[4][2],int numCircs_){
 		fetchGLSLVariableLocations();
 		
 	}
-	ModelView::ppuLoc_numCircles = ppUniformLocation(shaderProgram, "numCircs");
-	//ppuLoc_numCircles = ppUniformLocation(shaderProgram, "numCircs");
 	
-	// mcCorners[0][1]=9.0f;
-
+	
 	// TODO: define and call method(s) to initialize your model and send data to GPU
 
 	ModelView::numInstances++;
@@ -169,11 +161,11 @@ void ModelView::fetchGLSLVariableLocations()
 	    ModelView::ppuLoc_radius = ppUniformLocation(shaderProgram, "radius");
 	  ModelView::ppuLoc_scaleTrans = ppUniformLocation(shaderProgram, "scaleTrans");
 	  
-	  ModelView::ppuLoc_circleCenters = ppUniformLocation(shaderProgram, "circleCenters");
+	 // ModelView::ppuLoc_circleCenters = ppUniformLocation(shaderProgram, "circleCenters");
 	  ModelView::pvaLoc_mcPosition = pvAttribLocation(shaderProgram, "mcPosition");
 	  ModelView::pvaLoc_refCoord = pvAttribLocation(shaderProgram, "refCoord");
- 	  //ModelView::ppuLoc_numCircles = ppUniformLocation(shaderProgram, "numCircs");
-	  std::cout << ppuLoc_radius << ", " << ", " << ppuLoc_circleCenters << ", " << ppuLoc_scaleTrans <<"\n\n\n";
+ 	  ModelView::ppuLoc_numCircles = ppUniformLocation(shaderProgram, "numCircs");
+	  std::cout << ppuLoc_radius << ", " << ppuLoc_numCircles<< ", " << ", " << ppuLoc_scaleTrans <<"\n\n\n";
 	}
 }
 
