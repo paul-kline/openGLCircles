@@ -29,13 +29,14 @@ public:
 
 	static void setMCRegionOfInterest(double xyz[6]);
 	GLint numCircs;
+	
 private:
 	
 	//float* x; //pointer of any kind here seg faults.
 	float mcCorners[4][2];
-
+	static GLboolean animating;
 	static GLfloat radius;
-	
+	static GLfloat creationDistance;
 	
 	// TODO: VAO(s), VBO(s), and other relevant INSTANCE variables
 
@@ -47,7 +48,7 @@ private:
 	// TODO: add uniform and attribute variable location CLASS variables
 	static GLint ppuLoc_scaleTrans;
 	static GLint ppuLoc_radius;
-	static GLint ppuLoc_circleCenters;
+	static GLint ppuLoc_creationDistance;
 	static GLint pvaLoc_mcPosition;
 	static GLint pvaLoc_refCoord;
 	

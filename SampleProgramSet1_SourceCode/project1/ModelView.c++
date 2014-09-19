@@ -6,22 +6,28 @@
 #include "ModelView.h"
 #include "Controller.h"
 #include "ShaderIF.h"
-
+#include "GLFWController.h"
+double delayInSeconds = 0.050;
+int delayInMilliseconds = 50;
+GLboolean ModelView::animating= false;
 ShaderIF* ModelView::shaderIF = NULL;
 int ModelView::numInstances = 0;
 
 
 GLint numCircs=-1;
+
 GLfloat** ModelView::circleCenters;
 
 GLuint ModelView::shaderProgram = 0;
 GLint ModelView::ppuLoc_scaleTrans = -2;
 GLint ModelView::pvaLoc_mcPosition = -2;
 GLint ModelView::ppuLoc_radius = -2;
-GLint ModelView::ppuLoc_circleCenters = -2;
+GLint ModelView::ppuLoc_creationDistance = -2;
 GLint ModelView::pvaLoc_refCoord = -2;
 GLint ModelView::ppuLoc_numCircles = -2;
 GLfloat ModelView::radius =0.4;
+GLfloat ModelView::creationDistance = 0.4;
+
 
 double ModelView::mcRegionOfInterest[6] = { -1.0, 1.0, -1.0, 1.0, -1.0, 1.0 };
 
@@ -161,11 +167,11 @@ void ModelView::fetchGLSLVariableLocations()
 	    ModelView::ppuLoc_radius = ppUniformLocation(shaderProgram, "radius");
 	  ModelView::ppuLoc_scaleTrans = ppUniformLocation(shaderProgram, "scaleTrans");
 	  
-	 // ModelView::ppuLoc_circleCenters = ppUniformLocation(shaderProgram, "circleCenters");
+	  ModelView::ppuLoc_creationDistance = ppUniformLocation(shaderProgram, "creationDistance");
 	  ModelView::pvaLoc_mcPosition = pvAttribLocation(shaderProgram, "mcPosition");
 	  ModelView::pvaLoc_refCoord = pvAttribLocation(shaderProgram, "refCoord");
  	  ModelView::ppuLoc_numCircles = ppUniformLocation(shaderProgram, "numCircs");
-	  std::cout << ppuLoc_radius << ", " << ppuLoc_numCircles<< ", " << ", " << ppuLoc_scaleTrans <<"\n\n\n";
+	  std::cout << ppuLoc_radius << ", " << ppuLoc_numCircles<< ", "<<ppuLoc_creationDistance << ", " << ppuLoc_scaleTrans <<"\n\n\n";
 	}
 }
 
@@ -183,6 +189,12 @@ void ModelView::getMCBoundingBox(double* xyzLimits) const
 
 void ModelView::handleCommand(unsigned char key, double ldsX, double ldsY)
 {
+  if (key == 'a')
+	{
+	  std::cout << "You clicked a!!!!!!\n\n\n";
+		animating = !animating;
+	}
+  
 }
 
 // linearMap determines the scale and translate parameters needed in
@@ -232,9 +244,20 @@ void ModelView::render() const
 	//std::cout << "SCALETRANS: " << scaleTrans[0] << ", " << scaleTrans[1];
 	glUniform4fv(ModelView::ppuLoc_scaleTrans, 1, scaleTrans);
 	glUniform1f(ModelView::ppuLoc_radius, radius);
+	glUniform1f(ModelView::ppuLoc_creationDistance, creationDistance);
 	//if(numSurroundingCircles!=6){ std::cout << "not 6 \n\n\n\n\n\n";}
 	glUniform1i(ModelView::ppuLoc_numCircles, numCircs);
-	
+	if(animating){
+	  std::cout << "animating!!!\n\n\n";
+	  creationDistance = 0.6;
+	 glUniform1f(ModelView::ppuLoc_creationDistance, creationDistance); 
+	  
+	}else{
+	//  std::cout << "not animatinganimating!!!\n\n\n";
+	  creationDistance=radius;
+	  glUniform1f(ModelView::ppuLoc_creationDistance, creationDistance);
+	  
+	}
 	/*
 	GLfloat flattened[(ModelView::numSurroundingCircles+1)*2];
 	for( int i = 0; i <(ModelView::numSurroundingCircles+1)*2; i = i + 1 )
@@ -283,7 +306,7 @@ void ModelView::defineSquare(){
   glGenBuffers(2,vbo);
   glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
   int numBytes = 4*sizeof(vec2);
-  glBufferData(GL_ARRAY_BUFFER,numBytes,squareVertices, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER,numBytes,squareVertices, GL_DYNAMIC_DRAW);
   glVertexAttribPointer(ModelView::pvaLoc_mcPosition, 2, GL_FLOAT, GL_FALSE, 0, 0);
   glEnableVertexAttribArray(ModelView::pvaLoc_mcPosition);
   
