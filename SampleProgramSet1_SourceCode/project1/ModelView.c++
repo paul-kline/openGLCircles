@@ -36,7 +36,7 @@ GLfloat ModelView::radicalOffset = 0.0;
 double ModelView::mcRegionOfInterest[6] = { -1.0, 1.0, -1.0, 1.0, -1.0, 1.0 };
 
 ModelView::ModelView(float mcCoords[4][2],GLint numCircs_){	
-	 numCircs=numCircs_;	
+      numCircs=numCircs_;	
       if (ModelView::shaderProgram == 0)
 	{
 		// Create the common shader program:
@@ -46,36 +46,38 @@ ModelView::ModelView(float mcCoords[4][2],GLint numCircs_){
 	}
 	
 	
-	// TODO: define and call method(s) to initialize your model and send data to GPU
+	
 
 	ModelView::numInstances++;
 	double xBounds[2]={mcCoords[0][0], mcCoords[0][0]}; //arbitrarily starting by setting to two real x values.
 	double yBounds[2]={mcCoords[0][1],mcCoords[0][1]};
-  for( int i = 0; i < 4; i = i + 1 )
-   {
-     //std::cout << "You are passing in to the constructor: mcCoords[" << i << "][0]=" << mcCoords[i][0]<<'\n';
-     //next 4 ifs are to help set the bounding box.
-     if(xBounds[0]>mcCoords[i][0]){
-       xBounds[0]=mcCoords[i][0];
-     }
-     if(xBounds[1]<mcCoords[i][1]){
-       xBounds[1]=mcCoords[i][1];
-     }
+      for( int i = 0; i < 4; i = i + 1 )
+      {
+	//std::cout << "You are passing in to the constructor: mcCoords[" << i << "][0]=" << mcCoords[i][0]<<'\n';
+	//next 4 ifs are to help set the bounding box.
+	if(xBounds[0]>mcCoords[i][0]){
+	  xBounds[0]=mcCoords[i][0];
+	}
+	if(xBounds[1]<mcCoords[i][1]){
+	  xBounds[1]=mcCoords[i][1];
+	}
      
-     if(yBounds[0]>mcCoords[i][0]){
-       yBounds[0]=mcCoords[i][0];
-     }
-     if(yBounds[1]<mcCoords[i][1]){
-       yBounds[1]=mcCoords[i][1];
-     }
-     mcCorners[i][0]=mcCoords[i][0];
-     mcCorners[i][1]=mcCoords[i][1];
+	if(yBounds[0]>mcCoords[i][0]){
+	  yBounds[0]=mcCoords[i][0];
+	}
+	if(yBounds[1]<mcCoords[i][1]){
+	  yBounds[1]=mcCoords[i][1];
+	}
+	mcCorners[i][0]=mcCoords[i][0];
+	mcCorners[i][1]=mcCoords[i][1];
      
-   }
-   double bounds[6] = {xBounds[0],xBounds[1],yBounds[0],yBounds[1],-1,1};
-   setMCRegionOfInterest(bounds);
+      }
+      double bounds[6] = {xBounds[0],xBounds[1],yBounds[0],yBounds[1],-1,1};
+      //Now that I have the new bounds, set 'em!
+      setMCRegionOfInterest(bounds);
   
-  defineSquare();
+      //oh yeah, and define the square.
+      defineSquare();
   
 }
 ModelView::~ModelView()
@@ -145,27 +147,25 @@ void ModelView::fetchGLSLVariableLocations()
 {
 	if (ModelView::shaderProgram > 0)
 	{
-		// TODO: Set GLSL variable locations here
-	    ModelView::ppuLoc_radius = ppUniformLocation(shaderProgram, "radius");
+	  //Per primitive uniform stuff.
+	  ModelView::ppuLoc_radius = ppUniformLocation(shaderProgram, "radius");
 	  ModelView::ppuLoc_scaleTrans = ppUniformLocation(shaderProgram, "scaleTrans");
-	  
 	  ModelView::ppuLoc_creationDistance = ppUniformLocation(shaderProgram, "creationDistance");
+	  ModelView::ppuLoc_numCircles = ppUniformLocation(shaderProgram, "numCircs");
+	  ModelView::ppuLoc_radicalOffset = ppUniformLocation(shaderProgram, "radicalOffset");
+	  //per vertex stuff 
 	  ModelView::pvaLoc_mcPosition = pvAttribLocation(shaderProgram, "mcPosition");
 	  ModelView::pvaLoc_refCoord = pvAttribLocation(shaderProgram, "refCoord");
- 	  ModelView::ppuLoc_numCircles = ppUniformLocation(shaderProgram, "numCircs");
-	  ModelView::ppuLoc_radicalOffset = ppUniformLocation(shaderProgram, "radicalOffset");
+ 	  
 	  
-	  
-	  std::cout << ppuLoc_radius << ", " << ppuLoc_numCircles<< ", "<<ppuLoc_creationDistance << ", " << ppuLoc_scaleTrans <<"\n\n\n";
+	  //debugging
+	  //std::cout << ppuLoc_radius << ", " << ppuLoc_numCircles<< ", "<<ppuLoc_creationDistance << ", " << ppuLoc_scaleTrans <<"\n\n\n";
 	}
 }
 
 // xyzLimits: {mcXmin, mcXmax, mcYmin, mcYmax, mcZmin, mcZmax}
 void ModelView::getMCBoundingBox(double* xyzLimits) const
 {
-	// TODO:
-	// Put this ModelView instance's min and max x, y, and z extents
-	// into xyzLimits[0..5]. (-1 .. +1 is OK for z direction for 2D models)
   for( int i = 0; i < 6; i = i + 1 )
    {
      xyzLimits[i]=mcRegionOfInterest[i];
@@ -176,16 +176,14 @@ void ModelView::handleCommand(unsigned char key, double ldsX, double ldsY)
 {
   if (key == 'a')
 	{
-	//  std::cout << "You clicked a!!!!!!\n";
+
 		animating_inout = true;
-		//animate();
 // 		if(ModelView::animating){
  			GLFWController* glfwC =
  				dynamic_cast<GLFWController*>(Controller::getCurrentController());
  			if (glfwC != NULL)
  			{
  				glfwC->setRunWaitsForAnEvent(false);
-//   				maybeAnimate();
  			}
 // 		}
 // 		else
@@ -210,7 +208,7 @@ void ModelView::handleCommand(unsigned char key, double ldsX, double ldsY)
 	 animating_inout=false; 
 	 animating_radically=false; 
 	}
-  maybeAnimate(); // handles updating the radius;
+  maybeAnimate();
 }
 
 // linearMap determines the scale and translate parameters needed in
@@ -248,11 +246,8 @@ void ModelView::render() const
 	// draw the triangles using our vertex and fragment shaders
 	glUseProgram(shaderProgram);
 	
-
 	glBindVertexArray(vao[0]);
 
-//
-	// TODO: set scaleTrans (and all other needed) uniform(s)
 
 	// TODO: make require primitive call(s)
 	float scaleTrans[4];
@@ -266,22 +261,6 @@ void ModelView::render() const
 	glUniform1i(ModelView::ppuLoc_numCircles, numCircs);
 	
 	
-	/*
-	GLfloat flattened[(ModelView::numSurroundingCircles+1)*2];
-	for( int i = 0; i <(ModelView::numSurroundingCircles+1)*2; i = i + 1 )
-	{
-	  flattened[i]= circleCenters[i/2][i %2];
-	  std::cout << flattened[i] << "\n";
-     
-	}
-	
-	
-	
-	glUniform1fv(ModelView::ppuLoc_circleCenters,(ModelView::numSurroundingCircles+1)*2,flattened);
-	
-	*/
-	
-	
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	// restore the previous program
 	
@@ -292,13 +271,9 @@ void ModelView::render() const
 void ModelView::setMCRegionOfInterest(double xyz[6])
 {
 	for (int i=0 ; i<6 ; i++)
-		mcRegionOfInterest[i] = xyz[i];
-	
+		mcRegionOfInterest[i] = xyz[i];	
 	
 }
-
-
-
 
 
 void ModelView::defineSquare(){
@@ -306,9 +281,6 @@ void ModelView::defineSquare(){
   std::cout << "mcCorners: " << mcCorners[0][0] << ", " << mcCorners[0][1];
   vec2 squareVertices[4]=
     {{mcCorners[0][0],mcCorners[0][1]},{mcCorners[1][0],mcCorners[1][1]},{mcCorners[2][0],mcCorners[2][1]},{mcCorners[3][0],mcCorners[3][1]}};
-   // {-1.0,-1.0}, {-0.50,0.50},{0.50,0.70},{0.50,-0.50}
-     // {-1.0,-1.0}, {-1.0,1.0},{1.0,1.0},{1.0,-1.0}
-    //};
   glGenVertexArrays(1,vao);
   glBindVertexArray(vao[0]);
   glGenBuffers(2,vbo);

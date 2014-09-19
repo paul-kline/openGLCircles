@@ -26,24 +26,27 @@ public:
 	void getMCBoundingBox(double* xyzLimits) const;
 	void handleCommand(unsigned char key, double ldsX, double ldsY);
 	void render() const;
-
+	
+	GLint numCircs;
+	
 	static void setMCRegionOfInterest(double xyz[6]);
+	//animation related things
 	static void animate();
 	static void maybeAnimate();
-	GLint numCircs;
-    static double lastAnimationUpdate;
-    static bool animating_inout;
-    static bool animating_radically;
-    static float stepSize;
-    static GLfloat radicalOffset;
+	
+	static double lastAnimationUpdate; //animation
+	static bool animating_inout;//animation
+	static bool animating_radically;//animation
+	static float stepSize; //this is used to animate radically and in&out-ly.
+	static GLfloat radicalOffset; //this is used for animation.
 	
 private:
 	
 	//float* x; //pointer of any kind here seg faults.
-	float mcCorners[4][2];
+	float mcCorners[4][2]; //the mc locations of the corners of this model view.
 	
-	static GLfloat radius;
-	static GLfloat creationDistance;
+	static GLfloat radius; //the size of the circles to be drawn.
+	static GLfloat creationDistance; // this is used for animation.
 	
 	// TODO: VAO(s), VBO(s), and other relevant INSTANCE variables
 
@@ -81,7 +84,6 @@ private:
 
 	static double mcRegionOfInterest[6];
 	
-
 	
 	static void fetchGLSLVariableLocations();
 

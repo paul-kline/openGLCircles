@@ -37,9 +37,6 @@ bool isInCircle(vec2 point, vec2 center)
 
 vec2 getCircleCoords(int index)
 {
-//   float** circleCenters2;//[numCircs+1][2];
-//   circleCenters2 = (int *)malloc(sizeof(*float)*numCircs);
-//   
   float surroundingCircs = numCircs-1;
   if(index==0){return vec2(0.0,0.0);}
   float tau = 2.0 * 3.14159265359;
@@ -47,17 +44,12 @@ vec2 getCircleCoords(int index)
     float y=creationDistance* cos(radicalOffset+(tau/surroundingCircs)*index);
     
     return vec2(x,y);
-    //  std::cout << circleCenters[i][0] << ", " << circleCenters[i][1] << "\n";
    }
    
 
-
-
 void main()
 {
-  
-  //vec2 * circles[numCircs];
-//fragmentColor = vec4(0.0, 0.0, 1.0, 1.0);//1.0, 0.0, 0.0, 1.0);
+
 	int i;
 	int counter=0;
 	for(i=0; i<numCircs; i++){
@@ -65,35 +57,34 @@ void main()
 	  if(isInCircle(refCoordToFS,getCircleCoords(i))) 
 	    {
 	      counter++;
-	//	fragmentColor = vec4(0.0, 0.0, 1.0, ((float)i/10.0)*1.0);//1.0, 0.0, 0.0, 1.0);
 	    }
 	  
 	}
 	if(counter==0){
 	    fragmentColor= color1;//vec4(0.0, 0.0, 1.0, 1.0);
 	}else if(counter==1){
-	    fragmentColor = brightgreen;///(counter+1);//vec4(0.0, 0.0, 0.5, ((float)counter)/numCircs);
+	    fragmentColor = brightgreen;
 	
 	}else if(counter==2){
-	    fragmentColor = pink;///(counter+1);//vec4(0.0, 0.0, 0.5, ((float)counter)/numCircs);
+	    fragmentColor = pink;
 	
 	}else if(counter==3){
-	    fragmentColor = cyan;///(counter+1);//vec4(0.0, 0.0, 0.5, ((float)counter)/numCircs);
+	    fragmentColor = cyan;
 	
 	}
 	else if(counter==4){
-	    fragmentColor = crimson;///(counter+1);//vec4(0.0, 0.0, 0.5, ((float)counter)/numCircs);
+	    fragmentColor = crimson;
 	
 	}else if(counter==5){
-	    fragmentColor = orange;///(counter+1);//vec4(0.0, 0.0, 0.5, ((float)counter)/numCircs);
+	    fragmentColor = orange;
 	
 	}
 	else if(counter==6){
-	    fragmentColor = springgreen;///(counter+1);//vec4(0.0, 0.0, 0.5, ((float)counter)/numCircs);
+	    fragmentColor = springgreen;
 	
 	}
 	else if(counter==7){
-	    fragmentColor = mistryrose;///(counter+1);//vec4(0.0, 0.0, 0.5, ((float)counter)/numCircs);
+	    fragmentColor = mistryrose;
 	
 	}
 	else{
