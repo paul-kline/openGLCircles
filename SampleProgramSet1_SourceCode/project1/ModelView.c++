@@ -9,12 +9,18 @@
 
 ShaderIF* ModelView::shaderIF = NULL;
 int ModelView::numInstances = 0;
+
+
+GLint numCircs=-1;
+GLfloat** ModelView::circleCenters;
+
 GLuint ModelView::shaderProgram = 0;
 GLint ModelView::ppuLoc_scaleTrans = -2;
 GLint ModelView::pvaLoc_mcPosition = -2;
 GLint ModelView::ppuLoc_radius = -2;
 GLint ModelView::ppuLoc_circleCenters = -2;
 GLint ModelView::pvaLoc_refCoord = -2;
+GLint ModelView::ppuLoc_numCircles = -2;
 GLfloat ModelView::radius =0.4;
 
 double ModelView::mcRegionOfInterest[6] = { -1.0, 1.0, -1.0, 1.0, -1.0, 1.0 };
@@ -30,25 +36,33 @@ ModelView::ModelView()
 		ModelView::shaderProgram = shaderIF->getShaderPgmID();
 		fetchGLSLVariableLocations();
 	}
-
+        ppuLoc_numCircles = ppUniformLocation(shaderProgram, "numCircs");
 	// TODO: define and call method(s) to initialize your model and send data to GPU
 	defineSquare();
 	ModelView::numInstances++;
 }
-ModelView::ModelView(float mcCoords[4][2],int numSurroundingCircles_){
-	numSurroundingCircles=numSurroundingCircles_;
-  
-	initializeCircleRadii();
-  
- 
+ModelView::ModelView(float mcCoords[4][2],int numCircs_){
+	
+//   if(ModelView::numSurroundingCircles == -1){
+//     
+//     ModelView::numSurroundingCircles=numSurroundingCircles_;
+//   }
+	
+	 numCircs=numCircs_;
+	
       if (ModelView::shaderProgram == 0)
 	{
 		// Create the common shader program:
 	 	ModelView::shaderIF = new ShaderIF("project1.vsh", "project1.fsh");
 	  //ModelView::shaderIF = ShaderIF::initShader("project1.vsh", "project1.fsh");
 		ModelView::shaderProgram = shaderIF->getShaderPgmID();
+// 		 numCircs=numCircs_;
+		// initializeCircleRadii();
 		fetchGLSLVariableLocations();
+		
 	}
+	ModelView::ppuLoc_numCircles = ppUniformLocation(shaderProgram, "numCircs");
+	//ppuLoc_numCircles = ppUniformLocation(shaderProgram, "numCircs");
 	
 	// mcCorners[0][1]=9.0f;
 
@@ -154,10 +168,12 @@ void ModelView::fetchGLSLVariableLocations()
 		// TODO: Set GLSL variable locations here
 	    ModelView::ppuLoc_radius = ppUniformLocation(shaderProgram, "radius");
 	  ModelView::ppuLoc_scaleTrans = ppUniformLocation(shaderProgram, "scaleTrans");
-	
-	   ModelView::ppuLoc_circleCenters = ppUniformLocation(shaderProgram, "circleCenters");
+	  
+	  ModelView::ppuLoc_circleCenters = ppUniformLocation(shaderProgram, "circleCenters");
 	  ModelView::pvaLoc_mcPosition = pvAttribLocation(shaderProgram, "mcPosition");
 	  ModelView::pvaLoc_refCoord = pvAttribLocation(shaderProgram, "refCoord");
+ 	  //ModelView::ppuLoc_numCircles = ppUniformLocation(shaderProgram, "numCircs");
+	  std::cout << ppuLoc_radius << ", " << ", " << ppuLoc_circleCenters << ", " << ppuLoc_scaleTrans <<"\n\n\n";
 	}
 }
 
@@ -215,7 +231,7 @@ void ModelView::render() const
 
 	glBindVertexArray(vao[0]);
 
-
+//
 	// TODO: set scaleTrans (and all other needed) uniform(s)
 
 	// TODO: make require primitive call(s)
@@ -224,26 +240,30 @@ void ModelView::render() const
 	//std::cout << "SCALETRANS: " << scaleTrans[0] << ", " << scaleTrans[1];
 	glUniform4fv(ModelView::ppuLoc_scaleTrans, 1, scaleTrans);
 	glUniform1f(ModelView::ppuLoc_radius, radius);
+	//if(numSurroundingCircles!=6){ std::cout << "not 6 \n\n\n\n\n\n";}
+	glUniform1i(ModelView::ppuLoc_numCircles, numCircs);
 	
-	
-	
-	GLfloat flattened[(numSurroundingCircles+1)*2];
-	for( int i = 0; i <(numSurroundingCircles+1)*2; i = i + 1 )
+	/*
+	GLfloat flattened[(ModelView::numSurroundingCircles+1)*2];
+	for( int i = 0; i <(ModelView::numSurroundingCircles+1)*2; i = i + 1 )
 	{
 	  flattened[i]= circleCenters[i/2][i %2];
+	  std::cout << flattened[i] << "\n";
      
 	}
 	
 	
 	
-	glUniform1fv(ModelView::ppuLoc_circleCenters,(numSurroundingCircles+1)*2,flattened);
+	glUniform1fv(ModelView::ppuLoc_circleCenters,(ModelView::numSurroundingCircles+1)*2,flattened);
 	
-	
+	*/
 	
 	
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	// restore the previous program
+	
 	glUseProgram(pgm);
+	
 }
 
 void ModelView::setMCRegionOfInterest(double xyz[6])
@@ -286,28 +306,29 @@ void ModelView::defineSquare(){
   
 }
 
-void ModelView::initializeCircleRadii()
-{
- // float circleCenters[numSurroundingCircles+1][2];
-  circleCenters = new float* [numSurroundingCircles+1]();
- for( int i = 0; i < numSurroundingCircles+1; i = i + 1 )
-  {
-    circleCenters[i]= new float[2]();
-     
-   }
-  
-  circleCenters[0][0]=0.0; //circle in the middle;
-  circleCenters[0][1]=0.0;
-  
-  float tau = 2 * M_PI;
-  for( int i = 1; i < numSurroundingCircles+1; i = i + 1 )
-  {
-    circleCenters[i][0]=radius* sin(tau/numSurroundingCircles);
-    circleCenters[i][1]=radius* cos(tau/(float)numSurroundingCircles);
-     
-   }
-   
- //  centers[0] = centers[0];
-
-}
+// void ModelView::initializeCircleRadii()
+// {
+//  // float circleCenters[numSurroundingCircles+1][2];
+//   circleCenters = new float* [numSurroundingCircles+1]();
+//  for( int i = 0; i < numSurroundingCircles+1; i = i + 1 )
+//   {
+//     circleCenters[i]= new float[2]();
+//      
+//    }
+//   
+//   circleCenters[0][0]=0.0; //circle in the middle;
+//   circleCenters[0][1]=0.0;
+//   
+//   float tau = 2 * M_PI;
+//   for( int i = 1; i < numSurroundingCircles+1; i = i + 1 )
+//   {
+//     circleCenters[i][0]=radius* sin((tau/numSurroundingCircles)*i);
+//     circleCenters[i][1]=radius* cos((tau/(float)numSurroundingCircles)*i);
+//     //  std::cout << circleCenters[i][0] << ", " << circleCenters[i][1] << "\n";
+//    }
+//    
+//    
+//  //  centers[0] = centers[0];
+// 
+// }
 

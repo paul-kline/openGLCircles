@@ -4,7 +4,7 @@
 //layout (location = 0) in vec2 vertexCoordinates;
 
 uniform vec4 scaleTrans;
-//uniform float radiuss;
+
 
 
 in vec2 mcPosition;
@@ -19,5 +19,8 @@ void main()
 	ldsY = scaleTrans[2]*mcPosition.y + scaleTrans[3];
 	gl_Position = vec4(ldsX,ldsY, 0, 1);
 	refCoordToFS=refCoord;
+	
+	
+	
 }
 

@@ -30,7 +30,7 @@ public:
 	static void setMCRegionOfInterest(double xyz[6]);
 
 private:
-	int numSurroundingCircles;
+	GLint numSurroundingCircles;
 	//float* x; //pointer of any kind here seg faults.
 	float mcCorners[4][2];
 
@@ -50,6 +50,9 @@ private:
 	static GLint ppuLoc_circleCenters;
 	static GLint pvaLoc_mcPosition;
 	static GLint pvaLoc_refCoord;
+	
+	
+	static GLint ppuLoc_numCircles;
 	// "pp": "per-primitive"; "pv": "per-vertex"
 	static GLint ppUniformLocation(GLuint glslProgram, const std::string& name);
 	static GLint pvAttribLocation(GLuint glslProgram, const std::string& name);
@@ -68,6 +71,7 @@ private:
 	static void computeScaleTrans(float* scaleTrans);
 
 	static double mcRegionOfInterest[6];
+	
 
 	
 	static void fetchGLSLVariableLocations();
@@ -75,12 +79,9 @@ private:
 	void initializeCircleRadii();
 	void defineSquare();
 	
-
-    
-protected:
    
 protected:
-    GLfloat** circleCenters;
+    static GLfloat** circleCenters;
 };
 
 #endif
